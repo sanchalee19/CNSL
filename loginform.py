@@ -1,53 +1,69 @@
 import hashlib
 
-# Function to hash a password using SHA-256
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+#def generate_hash(password):
+    # sha1 = hashlib.sha1()
+    # sha1.update(message.encode('utf-8'))
+    # return sha1.hexdigest()
 
-# Function to register a new user
-def register_user(users_db):
-    username = input("Enter username: ")
-    if username in users_db:
-        print("Username already exists! Please try again.")
-        return
-    password = input("Enter password: ")
-    hashed_password = hash_password(password)
-    users_db[username] = hashed_password
-    print("User registered successfully!")
+def generate_hash(password):
+    sha256 = hashlib.sha256()
+    sha256.update(password.encode('utf-8'))
+    return sha256.hexdigest()
 
-# Function to login a user
-def login_user(users_db):
+
+def registerUser(userDB):
     username = input("Enter username: ")
-    if username not in users_db:
-        print("Username does not exist! Please register first.")
+    if username in userDB:
+        print("Username already exists, try another username")
         return
+    
     password = input("Enter password: ")
-    hashed_password = hash_password(password)
-    if users_db[username] == hashed_password:
-        print("Login successful!")
+    hashPassword = generate_hash(password)
+    userDB[username] = hashPassword 
+
+    print("User registered successfully! ")
+
+
+def loginUser(userDB):
+    username = input("Enter username: ")
+    if username not in userDB:
+        print("Username does not exist. ")
+        return
+    
+    password = input("Enter password: ")
+    hashpassword = generate_hash(password)
+
+    if userDB[username] == hashpassword:
+        print("Login successful")
     else:
-        print("Invalid password! Please try again.")
+        print("Invalid password")
 
-# Main function
+
 def main():
-    users_db = {}  # Dictionary to store username and hashed passwords
+    userDB = {}
 
-    while True:
-        print("\n--- Login System ---")
+    while True: 
+        print("---------login form---------")
         print("1. Register")
         print("2. Login")
-        print("3. Exit")
-        choice = input("Enter your choice: ")
+        print("3. Exit ")
 
-        if choice == "1":
-            register_user(users_db)
-        elif choice == "2":
-            login_user(users_db)
-        elif choice == "3":
-            print("Exiting program. Goodbye!")
-            break
+        choice = int(input("Enter choice: "))
+
+        if choice == 1:
+            registerUser(userDB)
+
+        elif choice == 2:
+            loginUser(userDB)
+
+        elif choice == 3:
+            return 
+        
         else:
-            print("Invalid choice! Please enter 1, 2, or 3.")
+            print("Enter valid choice!")
 
 if __name__ == "__main__":
     main()
+
+
+
