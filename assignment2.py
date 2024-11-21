@@ -1,101 +1,55 @@
-import random
+# Design an experiment to estimate the amount of time to i) Generate key pair (RSA) ii) Encrypt n bit message (RSA) iii) Decrypt n bit message (RSA) As function of key size, experiment with different n-bit messages. Summarize your conclusions
+
 import time
-from sympy import isprime
 
-# Function to generate a random prime number
-def generate_prime(bits):
-    while True:
-        # Generate a random number of the given bit size
-        num = random.getrandbits(bits)
-        if isprime(num):
-            return num
+def generate_key_pairs():
+    # s1: select p, q
+    p = 3
+    q = 11
 
-# Function to compute the greatest common divisor (GCD)
-def gcd(a, b):
-    while b:
-        a, b = b, a % b
-    return a
+    # s2: calculate n
+    n = p*q
 
-# Function to compute modular inverse using Extended Euclidean Algorithm
-def modinv(a, m):
-    m0, x0, x1 = m, 0, 1
-    while a > 1:
-        q = a // m
-        m, a = a % m, m
-        x0, x1 = x1 - q * x0, x0
-    return x1 + m0 if x1 < 0 else x1
+    # s3: calculate totient fn of n; since p,q are prime, phi_n = n-1
+    phi_n = (p-1) * (q-1) 
 
-# RSA Key Generation
-def generate_rsa_keypair(bits):
-    # Step 1: Generate two distinct prime numbers p and q
-    p = generate_prime(bits)
-    q = generate_prime(bits)
-    while p == q:  # Ensure p and q are distinct
-        q = generate_prime(bits)
-    
-    # Step 2: Compute n = p * q
-    n = p * q
-    
-    # Step 3: Compute the totient (phi(n)) = (p - 1) * (q - 1)
-    phi_n = (p - 1) * (q - 1)
-    
-    # Step 4: Choose e such that 1 < e < phi(n) and gcd(e, phi(n)) = 1
-    e = 65537  # Common choice for e
-    while gcd(e, phi_n) != 1:
-        e = random.randrange(2, phi_n)
-    
-    # Step 5: Compute d, the modular inverse of e modulo phi(n)
-    d = modinv(e, phi_n)
-    
-    # Public key (e, n), Private key (d, n)
-    return ((e, n), (d, n))
+    # s4: select e
+    e = 7
 
-# RSA Encryption
+    # s5: calculate d
+    d = pow(e, -1, phi_n)
+
+    return((e,n), (d,n))
+
 def encrypt(public_key, plaintext):
     e, n = public_key
-    # Convert plaintext to integers (using ord to get the ASCII value of characters)
-    message = [ord(char) for char in plaintext]
-    # Encrypt each character
+    message = [ord(char) - ord('a') for char in plaintext]
     ciphertext = [pow(char, e, n) for char in message]
     return ciphertext
 
-# RSA Decryption
-def decrypt(private_key, ciphertext):
+def decrypt(private_key, cipher):
     d, n = private_key
-    # Decrypt each character
-    decrypted_message = [chr(pow(char, d, n)) for char in ciphertext]
-    return ''.join(decrypted_message)
+    decrypted = [chr(pow(char, d, n) + ord('a')) for char in cipher]
+    return ''.join(decrypted)
 
-# Main function to run the experiment with timing
 def main():
-    bits = 8  # Smaller bit size for testing; for stronger security, use 1024 or 2048 bits
-    # Measure key generation time
-    start_time = time.time()
-    public_key, private_key = generate_rsa_keypair(bits)
-    key_generation_time = time.time() - start_time
-    
-    print(f"Public Key: {public_key}")
-    print(f"Private Key: {private_key}")
-    
-    message = "hello"
-    print(f"Original Message: {message}")
-    
-    # Measure encryption time
-    start_time = time.time()
-    ciphertext = encrypt(public_key, message)
-    encryption_time = time.time() - start_time
-    print(f"Encrypted Message: {ciphertext}")
-    
-    # Measure decryption time
-    start_time = time.time()
-    decrypted_message = decrypt(private_key, ciphertext)
-    decryption_time = time.time() - start_time
-    print(f"Decrypted Message: {decrypted_message}")
-    
-    # Print the times
-    print(f"Key Generation Time: {key_generation_time:.6f} seconds")
-    print(f"Encryption Time: {encryption_time:.6f} seconds")
-    print(f"Decryption Time: {decryption_time:.6f} seconds")
 
+    plaintext = "dobby"
+
+    start_time = time.time()
+    public_key, private_key = generate_key_pairs()
+    print(f"Key genrn time: {(time.time() - start_time):}")
+    print(f"Public: {public_key}, Pvt: {private_key}")
+    
+    start_time = time.time()
+    encrypted_text = encrypt(public_key, plaintext)
+    print(f"Encrypn time: {(time.time() - start_time):}")
+    print(f"Encrypted text: {encrypted_text}")
+
+    start_time = time.time()
+    decrypted_text = decrypt(private_key, encrypted_text)
+    print(f"Decrypn time: {(time.time() - start_time):}")
+    print(f"Decrypted text: {decrypted_text}")
+    
 if __name__ == "__main__":
     main()
